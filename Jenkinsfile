@@ -12,17 +12,21 @@ pipeline {
             }
         }
 
-        stage('Deploy Backend Containers') {
-            steps {
-                sh '''
-                docker network create app-network || true
-                docker rm -f backend1 backend2 || true
+ stage('Deploy NGINX Load Balancer') {
+    steps {
+        sh '''
+        docker rm -f nginx-lb || true
 
-                docker run -d --name backend1 --network app-network backend-app
-                docker run -d --name backend2 --network app-network backend-app
-                '''
-            }
-        }
+        docker build -t nginx-lb nginx
+
+        docker run -d \
+          --name nginx-lb \
+          --network app-network \
+          -p 80:80 \
+          nginx-lb
+        '''
+    }
+}
 
         stage('Deploy NGINX Load Balancer') {
             steps {
